@@ -38,6 +38,113 @@ function Add-ProfileLogEntry {
 }
 Add-ProfileLogEntry "Starting profile load"
 
+${function:~} = { Set-Location ~ }
+${function:Set-ParentLocation} = { Set-Location .. }; Set-Alias ".." Set-ParentLocation
+${function:...} = { Set-Location ..\.. }
+${function:....} = { Set-Location ..\..\.. }
+${function:.....} = { Set-Location ..\..\..\.. }
+${function:......} = { Set-Location ..\..\..\..\.. }
+
+# Set Dark Mode
+function darkMode
+{
+  Set-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name AppsUseLightTheme -Value 0
+}
+
+function lightMode
+{
+  Set-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize -Name AppsUseLightTheme -Value 1
+}
+
+function nvcfg
+{
+  Set-Location ~/AppData/Local/nvim/lua/
+}
+
+# Git
+Set-Alias g lazygit
+function gaa
+{
+  git add -A
+}
+function gcm
+{
+  git commit -m
+}
+function gcl
+{
+  git clone
+}
+function gf
+{
+  git fetch --all -p
+}
+function gps
+{
+  git push
+}
+function gs
+{
+  git status -sb
+}
+function gsw($branch)
+{
+  git switch $branch
+}
+
+function gba
+{
+  git branch --all
+}
+
+function dotfiles
+{
+  Set-Location $env:USERPROFILE/.dotfiles
+}
+
+#search on google
+function gg ($query)
+{
+  Start-Process "www.google.com/search?q=$query"
+}
+
+#winget
+function ws ($query)
+{
+  winget search $query
+}
+function wi ($query)
+{
+  winget install $query
+}
+
+
+#chocolatey
+function cs ($query)
+{
+  choco search $query
+}
+function ci ($query)
+{
+  cinst $query
+}
+
+
+#scoop
+function scs ($query)
+{
+  scoop search $query
+}
+function sci ($query)
+{
+  scoop install $query
+}
+
+# Navigation Shortcuts
+${function:cdc} = { Set-Location ~\Code }
+${function:dt} = { Set-Location "$PSScriptRoot\..\..\Desktop" }
+${function:doc} = { Set-Location "$PSScriptRoot\.." }
+${function:dl} = { Set-Location ~\Downloads }
 # Aliases
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Set-Alias -Name su -Value Start-AdminSession
@@ -47,16 +154,36 @@ Set-Alias -Name grep -Value Find-String
 Set-Alias -Name touch -Value New-File
 Set-Alias -Name df -Value Get-Volume
 Set-Alias -Name which -Value Show-Command
-Set-Alias -Name ls -Value Get-ChildItemPretty
-Set-Alias -Name ll -Value Get-ChildItemPretty
-Set-Alias -Name la -Value Get-ChildItemPretty
-Set-Alias -Name l -Value Get-ChildItemPretty
 Set-Alias -Name tif Show-ThisIsFine
 Set-Alias -Name vim -Value nvim
 Set-Alias -Name vi -Value nvim
 Set-Alias -Name cat -Value bat
 Set-Alias -Name us -Value Update-Software
 
+Set-Alias tig 'C:\Program Files\Git\usr\bin\tig.exe'
+Set-Alias less 'C:\Program Files\Git\usr\bin\less.exe'
+Set-Alias reboot Restart-Computer
+
+# Directory Listing: Use `ls.exe` if available
+if (Get-Command lsd.exe -ErrorAction SilentlyContinue | Test-Path)
+{
+  Remove-Item alias:ls -ErrorAction SilentlyContinue
+  # Set `ls` to call `ls.exe` and always use --color
+  ${function:ls} = { lsd.exe --color @args }
+  # List all files in long format
+  ${function:l} = { ls -lF @args }
+  # List all files in long format, including hidden files
+  ${function:ll} = { ls -laF @args }
+  # List only directories
+  ${function:lld} = { Get-ChildItem -Directory -Force @args }
+} else
+{
+  # List all files, including hidden files
+  ${function:ll} = { ls -Force @args }
+  # List only directories
+  ${function:ldd} = { Get-ChildItem -Directory -Force @args }
+  Set-Alias l ls
+}
 Add-ProfileLogEntry "Aliases loaded"
 
 # Putting the FUN in Functions
