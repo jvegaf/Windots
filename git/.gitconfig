@@ -3,9 +3,6 @@
     hist = log --pretty=format:\"%h %ad | %s%d [%an]\" --graph --date=short
 [fetch]
     prune = true
-[user]
-	name = Jose Vega
-	email = josevega234@gmail.com
 [color]
 	diff = auto
 	status = auto
@@ -74,3 +71,5 @@
 [apply]
 	# Detect whitespace errors when applying a patch
 	whitespace = fix
+[safe]
+	directory = C:/Users/josev/.dotfiles

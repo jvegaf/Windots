@@ -140,6 +140,14 @@ function sci ($query)
   scoop install $query
 }
 
+function o.{
+  explorer .
+}
+
+function i. {
+  idea .
+}
+
 # Navigation Shortcuts
 ${function:cdc} = { Set-Location ~\Code }
 ${function:dt} = { Set-Location "$PSScriptRoot\..\..\Desktop" }
