@@ -1,22 +1,3 @@
-<#
-                      7#G~
-                    7BB7J#P~
-                 .?BG!   .?#G!
-                :B@J       .?BB7
-             ::  :Y#P~        7BB?.
-           ^Y#?    :J#G~        !GB?.
-          !&@!       .?#G!        J@B:
-       ~^  ^Y#5^       .7BB7    .PB?.  ~^
-    .!GB7    :Y#5^        !GB7.  ^.    Y#5^
-    7&&~       !@@G~       .P@#J.       J@B^
-     :J#G~   ~P#J^?#G!   .?#G~~P#Y:  .7BB7
-       .?BG7P#J.   .7BB7J#P~    ^5#Y?BG!
-         .?BJ.        7#G~        ^5B!
-
-    Author: Scott McKendry
-    Description: PowersShell Profile containing aliases and functions to be loaded when a new PowerShell session is started.
-#>
-
 # Initialise logging - helpful for debugging slow profile load times
 $enableLog = $false
 
@@ -58,7 +39,12 @@ function lightMode
 
 function nvcfg
 {
-  Set-Location ~/AppData/Local/nvim/lua/
+  Set-Location ~/AppData/Local/nvim/
+}
+
+function rmd($arg)
+{
+  Remove-Item -Recurse -Force $arg
 }
 
 # Git
