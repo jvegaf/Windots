@@ -134,6 +134,10 @@ function i. {
   idea .
 }
 
+function v. {
+  nvim .
+}
+
 # Navigation Shortcuts
 ${function:cdc} = { Set-Location ~\Code }
 ${function:dt} = { Set-Location "$PSScriptRoot\..\..\Desktop" }
@@ -149,7 +153,7 @@ Set-Alias -Name touch -Value New-File
 Set-Alias -Name df -Value Get-Volume
 Set-Alias -Name which -Value Show-Command
 Set-Alias -Name tif Show-ThisIsFine
-Set-Alias -Name vim -Value nvim
+Set-Alias -Name v -Value nvim
 Set-Alias -Name vi -Value nvim
 Set-Alias -Name cat -Value bat
 Set-Alias -Name us -Value Update-Software
