@@ -73,6 +73,3 @@
 	whitespace = fix
 [safe]
 	directory = C:/Users/josev/.dotfiles
-[user]
-	name = Jose Vega
-	email = josevega234@gmail.com

@@ -16,6 +16,10 @@
             "keys": "ctrl+v"
         },
         {
+            "command": "find",
+            "keys": "ctrl+shift+f"
+        },
+        {
             "command": 
             {
                 "action": "splitPane",
@@ -23,10 +27,6 @@
                 "splitMode": "duplicate"
             },
             "keys": "alt+shift+d"
-        },
-        {
-            "command": "find",
-            "keys": "ctrl+shift+f"
         }
     ],
     "alwaysShowTabs": true,
@@ -37,7 +37,7 @@
     "initialCols": 150,
     "initialPosition": ",",
     "initialRows": 38,
-    "launchMode": "focus",
+    "launchMode": "maximized",
     "newTabMenu": 
     [
         {
@@ -91,18 +91,6 @@
                 "hidden": true,
                 "name": "Ubuntu",
                 "source": "Windows.Terminal.Wsl"
-            },
-            {
-                "guid": "{a18b5cfc-79d3-5d42-9ceb-535605f19d14}",
-                "hidden": false,
-                "name": "Developer Command Prompt for VS 2022",
-                "source": "Windows.Terminal.VisualStudio"
-            },
-            {
-                "guid": "{17460eba-6608-5722-a3ad-0210c161aae7}",
-                "hidden": false,
-                "name": "Developer PowerShell for VS 2022",
-                "source": "Windows.Terminal.VisualStudio"
             }
         ]
     },
@@ -408,6 +396,7 @@
             "yellow": "#808000"
         }
     ],
-    "showTabsInTitlebar": true,
-    "themes": []
+    "showTabsInTitlebar": false,
+    "themes": [],
+    "useAcrylicInTabRow": true
 }

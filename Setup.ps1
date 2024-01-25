@@ -26,12 +26,9 @@ $wingetDeps = @(
     "Microsoft.OpenJDK.21"
     "Microsoft.PowerShell"
     "Python.Python.3.10"
-    "Starship.Starship"
-    "eza-community.eza"
     "qBittorrent.qBittorrent"
 )
 $chocoDeps = @(
-    "altsnap"
     "bat"
     "cacert"
     "fd"
@@ -129,6 +126,4 @@ git config --global --unset user.email | Out-Null
 git config --global --unset user.name | Out-Null
 git config --global user.email $currentGitEmail | Out-Null
 git config --global user.name $currentGitName | Out-Null
-
-.\altsnap\createTask.ps1 | Out-Null
 
