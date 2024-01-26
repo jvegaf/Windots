@@ -3,8 +3,9 @@
 
 # Linked Files (Destination => Source)
 $symlinks = @{
-    $PROFILE.CurrentUserAllHosts                                                                    = ".\Profile.ps1"
-    # "$HOME\AppData\Local\nvim"                                                                      = ".\nvim"
+# "$HOME\AppData\Local\nvim"                                                                      = ".\nvim"
+    # $PROFILE.CurrentUserAllHosts                                                                    = ".\Profile.ps1"
+    "$HOME\Documents\PowerShell"                                                                    = ".\PowerShell"
     "$HOME\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" = ".\windowsterminal\settings.json"
     "$HOME\.gitconfig"                                                                              = ".\git\.gitconfig"
     "$HOME\.gitattributes"                                                                          = ".\git\.gitattributes"
@@ -112,9 +113,6 @@ if ($fontFamilies -notcontains "JetBrainsMono NF") {
     Remove-Item -Path ".\JetBrainsMono.zip" -Force
 }
 
-$currentGitEmail = (git config --global user.email)
-$currentGitName = (git config --global user.name)
-
 # Create Symbolic Links
 Write-Host "Creating Symbolic Links..."
 foreach ($symlink in $symlinks.GetEnumerator()) {
@@ -122,8 +120,8 @@ foreach ($symlink in $symlinks.GetEnumerator()) {
     New-Item -ItemType SymbolicLink -Path $symlink.Key -Target (Resolve-Path $symlink.Value) -Force | Out-Null
 }
 
-git config --global --unset user.email | Out-Null
-git config --global --unset user.name | Out-Null
-git config --global user.email $currentGitEmail | Out-Null
-git config --global user.name $currentGitName | Out-Null
+# git config --global --unset user.email | Out-Null
+# git config --global --unset user.name | Out-Null
+# git config --global user.email $currentGitEmail | Out-Null
+# git config --global user.name $currentGitName | Out-Null
 
