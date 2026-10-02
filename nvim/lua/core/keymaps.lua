@@ -1,8 +1,14 @@
+local utils = require("core.utils")
+local snacks = require("snacks")
+
+--- Map a key combination to a command
+---@param modes string|string[]: The mode(s) to map the key combination to
+---@param lhs string: The key combination to map
+---@param rhs string|function: The command to run when the key combination is pressed
+---@param opts table: Options to pass to the keymap
 local map = function(modes, lhs, rhs, opts)
     local options = { silent = true }
-    if opts then
-        options = vim.tbl_extend("force", options, opts)
-    end
+    options = vim.tbl_extend("force", options, opts)
     if type(modes) == "string" then
         modes = { modes }
     end
@@ -11,49 +17,81 @@ local map = function(modes, lhs, rhs, opts)
     end
 end
 
+--- Open a non-interactive terminal and run a command. Keeps the current window focused.
+---@param cmd string: The command to run
+local function run_non_interactive_cmd(cmd)
+    return function()
+        local win = vim.api.nvim_get_current_win()
+        snacks.terminal.toggle(cmd, { interactive = false })
+        vim.api.nvim_set_current_win(win)
+    end
+end
+
+-- stylua: ignore start
+
 -- better up/down
-map({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", { expr = true })
-map({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", { expr = true })
+map({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", { desc = "Down", expr = true })
+map({ "n", "x" }, "<Down>", "v:count == 0 ? 'gj' : 'j'", { desc = "Down", expr = true })
+map({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", { desc = "Up", expr = true })
+map({ "n", "x" }, "<Up>", "v:count == 0 ? 'gk' : 'k'", { desc = "Up", expr = true })
 
 -- Move to window using the <ctrl> hjkl keys
-map("n", "<C-h>", "<C-w>h", { desc = "Go to left window", remap = true })
-map("n", "<C-j>", "<C-w>j", { desc = "Go to lower window", remap = true })
-map("n", "<C-k>", "<C-w>k", { desc = "Go to upper window", remap = true })
-map("n", "<C-l>", "<C-w>l", { desc = "Go to right window", remap = true })
+map("n", "<C-h>", "<C-w>h", { desc = "Go to Left Window", remap = true })
+map("n", "<C-j>", "<C-w>j", { desc = "Go to Lower Window", remap = true })
+map("n", "<C-k>", "<C-w>k", { desc = "Go to Upper Window", remap = true })
+map("n", "<C-l>", "<C-w>l", { desc = "Go to Right Window", remap = true })
 
 -- Resize window using <ctrl> arrow keys
-map("n", "<C-Up>", ":resize +2<cr>", { desc = "Increase window height" })
-map("n", "<C-Down>", ":resize -2<cr>", { desc = "Decrease window height" })
-map("n", "<C-Left>", ":vertical resize -2<cr>", { desc = "Decrease window width" })
-map("n", "<C-Right>", ":vertical resize +2<cr>", { desc = "Increase window width" })
+map("n", "<C-Up>", "<cmd>resize +2<cr>", { desc = "Increase Window Height" })
+map("n", "<C-Down>", "<cmd>resize -2<cr>", { desc = "Decrease Window Height" })
+map("n", "<C-Left>", "<cmd>vertical resize -2<cr>", { desc = "Decrease Window Width" })
+map("n", "<C-Right>", "<cmd>vertical resize +2<cr>", { desc = "Increase Window Width" })
 
 -- Move Lines
-map("n", "<A-j>", ":m .+1<cr>==", { desc = "Move down" })
-map("n", "<A-k>", ":m .-2<cr>==", { desc = "Move up" })
-map("i", "<A-j>", "<esc><cmd>m .+1<cr>==gi", { desc = "Move down" })
-map("i", "<A-k>", "<esc><cmd>m .-2<cr>==gi", { desc = "Move up" })
-map("v", "<A-j>", ":m '>+1<cr>gv=gv", { desc = "Move down" })
-map("v", "<A-k>", ":m '<-2<cr>gv=gv", { desc = "Move up" })
+map("n", "<A-j>", "<cmd>execute 'move .+' . v:count1<cr>==", { desc = "Move Down" })
+map("n", "<A-k>", "<cmd>execute 'move .-' . (v:count1 + 1)<cr>==", { desc = "Move Up" })
+map("i", "<A-j>", "<esc><cmd>m .+1<cr>==gi", { desc = "Move Down" })
+map("i", "<A-k>", "<esc><cmd>m .-2<cr>==gi", { desc = "Move Up" })
+map("v", "<A-j>", ":<C-u>execute \"'<,'>move '>+\" . v:count1<cr>gv=gv", { desc = "Move Down" })
+map("v", "<A-k>", ":<C-u>execute \"'<,'>move '<-\" . (v:count1 + 1)<cr>gv=gv", { desc = "Move Up" })
 
 -- Buffers
-map("n", "<S-h>", ":BufferLineCyclePrev<cr>", { desc = "Prev buffer" })
-map("n", "<S-l>", ":BufferLineCycleNext<cr>", { desc = "Next buffer" })
-map("n", "[b", ":BufferLineCyclePrev<cr>", { desc = "Prev buffer" })
-map("n", "]b", ":BufferLineCycleNext<cr>", { desc = "Next buffer" })
-map("n", "<leader>bb", ":e #<cr>", { desc = "Switch to Other buffer" })
-map("n", "<leader>`", ":e #<cr>", { desc = "Switch to Other buffer" })
+map("n", "<leader>bb", function() utils.switch_to_other_buffer() end, { desc = "Switch to Other Buffer" })
+map("n", "<leader>bd", function() snacks.bufdelete({ wipe = true }) end, { desc = "Delete buffer" })
+map("n", "L", ":bnext<cr>", { desc = "Next buffer" })
+map("n", "H", ":bprevious<cr>", { desc = "Previous buffer" })
 
 -- lazy
 map("n", "<leader>l", ":Lazy<cr>", { desc = "Lazy" })
 
--- Telescope
-map("n", "<leader>ff", ":Telescope find_files<cr>", { desc = "Fuzzy find files in cwd" })
-map("n", "<leader>fr", ":Telescope oldfiles<cr>", { desc = "Fuzzy find recent files" })
-map("n", "<leader>fs", ":Telescope live_grep<cr>", { desc = "Find string in cwd" })
-map("n", "<leader>fc", ":Telescope grep_string<cr>", { desc = "Find string under cursor in cwd" })
+-- Snacks Picker
+map("n", "<leader><leader>", function() snacks.picker.smart() end, { desc = "Smart Fuzzy Find" })
+map("n", "<leader>ff", function() snacks.picker.files({ hidden = true }) end, { desc = "Fuzzy find files" })
+map("n", "<leader>fr", function() snacks.picker.recent() end, { desc = "Fuzzy find recent files" })
+map("n", "<leader>fs", function() snacks.picker.grep() end, { desc = "Find string in CWD" })
+map("n", "<leader>fc", function() snacks.picker.grep_word() end, { desc = "Find word under cursor in CWD" })
+map("n", "<leader>fd", function() snacks.picker.todo_comments() end, { desc = "Find TODO comments" })
+map("n", "<leader>fb", function() snacks.picker.buffers({ layout = { preset = "select" }}) end, { desc = "Fuzzy find buffers" })
+map("n", "<leader>ft", function() snacks.picker() end, { desc = "Other pickers..." })
+map("n", "<leader>fh", function() snacks.picker.help() end, { desc = "Find help tags" })
+map("n", "<leader>fS", function() require("pick-resession").pick() end, { desc = "Find Session" })
+map("n" ,"<leader>.",  function() Snacks.scratch() end, { desc = "Toggle Scratch Buffer" })
 
---keywordprg
-map("n", "<leader>K", ":norm! K<cr>", { desc = "Keywordprg" })
+-- toggle options
+utils.toggle_global_boolean("autoformat", "Autoformat"):map("<leader>ta")
+utils.copilot_toggle():map("<leader>tc")
+snacks.toggle.option("spell", { name = "Spelling" }):map("<leader>ts")
+snacks.toggle.option("wrap", { name = "Wrap" }):map("<leader>tw")
+snacks.toggle.option("relativenumber", { name = "Relative Number" }):map("<leader>tL")
+snacks.toggle.diagnostics():map("<leader>td")
+snacks.toggle.line_number():map("<leader>tl")
+snacks.toggle.option("conceallevel", { off = 0, on = vim.o.conceallevel > 0 and vim.o.conceallevel or 2 }):map("<leader>tC")
+snacks.toggle.treesitter():map("<leader>tT")
+snacks.toggle.inlay_hints():map("<leader>th")
+
+-- Git/GitHub
+map("n", "<leader>gb", function() snacks.gitbrowse() end, { desc = "Git Browse" })
+map("n", "<leader>gm", function() utils.gh_markdown_preview() end, { desc = "GitHub Markdown Preview" })
 
 -- Clear search with <esc>
 map("n", "<esc>", ":noh<cr><esc>", { desc = "Escape and clear hlsearch" })
@@ -76,35 +114,38 @@ map("n", "<leader>w-", "<C-W>s", { desc = "Split window below", remap = true })
 map("n", "<leader>w|", "<C-W>v", { desc = "Split window right", remap = true })
 map("n", "<leader>-", "<C-W>s", { desc = "Split window below", remap = true })
 map("n", "<leader>|", "<C-W>v", { desc = "Split window right", remap = true })
+map("n", "<leader>wz", function() snacks.zen() end, { desc = "Zen mode" })
 
 -- tabs
-map("n", "<leader><tab>l", ":tablast<cr>", { desc = "Last Tab" })
-map("n", "<leader><tab>f", ":tabfirst<cr>", { desc = "First Tab" })
 map("n", "<leader><tab><tab>", ":tabnew<cr>", { desc = "New Tab" })
-map("n", "<leader><tab>]", ":tabnext<cr>", { desc = "Next Tab" })
+map("n", "<leader><tab>l", ":tabnext<cr>", { desc = "Next Tab" })
 map("n", "<leader><tab>d", ":tabclose<cr>", { desc = "Close Tab" })
-map("n", "<leader><tab>[", ":tabprevious<cr>", { desc = "Previous Tab" })
+map("n", "<leader><tab>h", ":tabprevious<cr>", { desc = "Previous Tab" })
 
 -- Code/LSP
-map("n", "<leader>cd", vim.diagnostic.open_float, { desc = "Line Diagnostics" })
-map("n", "<leader>cl", ":LspInfo<cr>", { desc = "LSP Info" })
 map("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" })
+map("n", "<leader>cd", function() vim.diagnostic.open_float({border = 'rounded'}) end, { desc = "Line Diagnostics" })
+map("n", "<leader>cli", ":check lsp<cr>", { desc = "LSP Info" })
 map("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Rename" })
-map("n", "gd", function() require("telescope.builtin").lsp_definitions({ reuse_win = true }) end,
-    { desc = "Goto Definition" })
-map("n", "gr", ":Telescope lsp_references<cr>", { desc = "Goto References" })
+map("n", "<leader>clr", utils.restart_lsp, { desc = "Restart LSP" })
+map("n", "<leader>cll", utils.open_lsp_log, { desc = "Open LSP Log" })
+map("i", "<M-l>", function() vim.lsp.inline_completion.get() end, { desc = "Accept Inline Completion" })
+map("n", "K", function() return vim.lsp.buf.hover() end, { desc = "Hover" })
 map("n", "gD", vim.lsp.buf.declaration, { desc = "Goto Declaration" })
-map("n", "gI", function() require("telescope.builtin").lsp_implementations({ reuse_win = true }) end,
-    { desc = "Goto Implementation" })
-map("n", "gy", function() require("telescope.builtin").lsp_type_definitions({ reuse_win = true }) end,
-    { desc = "Goto Type Definition" })
-map("n", "K", vim.lsp.buf.hover, { desc = "Hover" })
 map("n", "gK", vim.lsp.buf.signature_help, { desc = "Signature Help" })
+map("n", "gr", function() snacks.picker.lsp_references() end, { desc = "Goto References" })
+map("n", "gI", function() snacks.picker.lsp_implementations() end, { desc = "Goto Implementations" })
+map("n", "gd", function() snacks.picker.lsp_definitions() end, { desc = "Goto Definitions" })
+map("n", "gy", function() snacks.picker.lsp_type_definitions() end, { desc = "Goto Type Definitions" })
 
--- Neovide specific
-if vim.g.neovide then
-    map({ "n", "v" }, "<C-c>", '"+y', { desc = "Copy to clipboard" })
-    map({ "n", "v" }, "<C-x>", '"+x', { desc = "Cut to clipboard" })
-    map({ "n", "v" }, "<C-v>", '"+gP', { desc = "Paste from clipboard" })
-    map({ "i", 't' }, "<C-v>", '<esc>"+gP', { desc = "Paste from clipboard" })
-end
+-- Terminal/Run...
+map({"n", "t"}, "<C-\\>", function() snacks.terminal() end, { desc = "Toggle Terminal" })
+map("n", "<leader>gg", function() snacks.lazygit() end, { desc = "Lazygit" })
+map("n", "<leader>kk", function() utils.open_terminal_toggle({ "k9s" }, true) end, { desc = "K9s" })
+map("n", "<leader>ao", function() utils.open_terminal_toggle({ "pi" }) end, { desc = "pi coding agent" })
+map("n", "<leader>rlf", ":luafile %<cr>", { desc = "Run Current Lua File" })
+map("n", "<leader>rlt", ":PlenaryBustedFile %<cr>", { desc = "Run Lua Test File" })
+map("n", "<leader>rss", run_non_interactive_cmd(vim.fn.expand("%:p")), { desc = "Run shell script" })
+map("n", "<leader>rm", run_non_interactive_cmd("make"), { desc = "Run make" })
+map("n", "<leader>rt", run_non_interactive_cmd("task"), { desc = "Run task" })
+-- stylua: ignore end

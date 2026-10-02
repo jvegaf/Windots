@@ -1,33 +1,46 @@
-# Setup script for Windots
+# ██╗    ██╗██╗███╗   ██╗██████╗  ██████╗ ████████╗███████╗
+# ██║    ██║██║████╗  ██║██╔══██╗██╔═══██╗╚══██╔══╝██╔════╝
+# ██║ █╗ ██║██║██╔██╗ ██║██║  ██║██║   ██║   ██║   ███████╗
+# ██║███╗██║██║██║╚██╗██║██║  ██║██║   ██║   ██║   ╚════██║
+# ╚███╔███╔╝██║██║ ╚████║██████╔╝╚██████╔╝   ██║   ███████║
+#  ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝╚═════╝  ╚═════╝    ╚═╝   ╚══════╝
+# Setup.ps1 - Scott McKendry
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 #Requires -RunAsAdministrator
+#Requires -Version 7
 
 # Linked Files (Destination => Source)
 $symlinks = @{
-# "$HOME\AppData\Local\nvim"                                                                      = ".\nvim"
-    # $PROFILE.CurrentUserAllHosts                                                                    = ".\Profile.ps1"
-    "$HOME\Documents\PowerShell"                                                                    = ".\PowerShell"
+    $PROFILE.CurrentUserAllHosts                                                                    = ".\Profile.ps1"
+    "$HOME\AppData\Local\nvim"                                                                      = ".\nvim"
+    "$HOME\AppData\Local\fastfetch"                                                                 = ".\fastfetch"
+    "$HOME\AppData\Local\k9s"                                                                       = ".\k9s"
     "$HOME\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json" = ".\windowsterminal\settings.json"
     "$HOME\.gitconfig"                                                                              = ".\git\.gitconfig"
     "$HOME\.gitattributes"                                                                          = ".\git\.gitattributes"
     "$HOME\.gitignore_global"                                                                       = ".\git\.gitignore_global"
     "$HOME\AppData\Roaming\lazygit"                                                                 = ".\lazygit"
     "$HOME\AppData\Roaming\AltSnap\AltSnap.ini"                                                     = ".\altsnap\AltSnap.ini"
+    "$ENV:PROGRAMFILES\WezTerm\wezterm_modules"                                                     = ".\wezterm\"
 }
 
-# Winget & choco dependencies (cmd => package name)
+# Winget & choco dependencies
 $wingetDeps = @(
-    "10186emoacht.Monitorian_0q7myvhtpbc7w"
-    "21090PaddyXu.QuickLook_egxr34yet59cg"
-    "5319275A.WhatsAppDesktop_cv1g1gvanyjgm"
-    "AgileBits.1Password"
-    "Chocolatey.Chocolatey"
-    "CoreyButler.NVMforWindows"
-    "Git.Git"
-    "KiCad.KiCad"
-    "Microsoft.OpenJDK.21"
-    "Microsoft.PowerShell"
-    "Python.Python.3.10"
-    "qBittorrent.qBittorrent"
+    "chocolatey.chocolatey"
+    "eza-community.eza"
+    "ezwinports.make"
+    "fastfetch-cli.fastfetch"
+    "git.git"
+    "github.cli"
+    "kitware.cmake"
+    "mbuilov.sed"
+    "microsoft.powershell"
+    "neovim.neovim"
+    "openjs.nodejs"
+    "sst.opencode"
+    "starship.starship"
+    "task.task"
 )
 $chocoDeps = @(
     "bat"
@@ -37,17 +50,21 @@ $chocoDeps = @(
     "gawk"
     "hxd"
     "lazygit"
-    "lua"
-    "luarocks"
-    "make"
     "mingw"
-    "neovim"
+    "nerd-fonts-jetbrainsmono"
     "ripgrep"
-    "rustup"
-    "sed"
-    "wget"
+    "sqlite"
+    "wezterm"
     "zig"
     "zoxide"
+)
+
+# PS Modules
+$psModules = @(
+    "CompletionPredictor"
+    "PSScriptAnalyzer"
+    "ps-arch-wsl"
+    "ps-color-scripts"
 )
 
 # Set working directory
@@ -58,7 +75,7 @@ Write-Host "Installing missing dependencies..."
 $installedWingetDeps = winget list | Out-String
 foreach ($wingetDep in $wingetDeps) {
     if ($installedWingetDeps -notmatch $wingetDep) {
-        winget install -e --id $wingetDep
+        winget install --id $wingetDep
     }
 }
 
@@ -72,14 +89,11 @@ foreach ($chocoDep in $chocoDeps) {
     }
 }
 
-# Create Custom NVIM shotcut
-if (!(Test-Path "$env:USERPROFILE\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\nvim.lnk")) {
-    $wshShell = New-Object -ComObject WScript.Shell
-    $shortcut = $wshShell.CreateShortcut("$env:USERPROFILE\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\nvim.lnk")
-    $shortcut.TargetPath = "C:\tools\neovim\nvim-win64\bin\nvim.exe"
-    $shortcut.workingDirectory = (Resolve-Path ..) # Set working directory to parent directory of this script (likely where you keep all Git Projects)
-    $shortcut.IconLocation = "C:\tools\neovim\nvim-win64\bin\nvim-qt.exe,0" # Steal icon from nvim-qt.exe
-    $shortcut.Save()
+# Install PS Modules
+foreach ($psModule in $psModules) {
+    if (!(Get-Module -ListAvailable -Name $psModule)) {
+        Install-Module -Name $psModule -Force -AcceptLicense -Scope CurrentUser
+    }
 }
 
 # Delete OOTB Nvim Shortcuts (including QT)
@@ -87,31 +101,8 @@ if (Test-Path "$env:USERPROFILE\AppData\Roaming\Microsoft\Windows\Start Menu\Pro
     Remove-Item "$env:USERPROFILE\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Neovim\" -Recurse -Force
 }
 
-Write-Host "Installing Fonts..."
-# Get all installed font families
-[void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
-$fontFamilies = (New-Object System.Drawing.Text.InstalledFontCollection).Families
-
-# Check if CaskaydiaCove NF is installed
-if ($fontFamilies -notcontains "JetBrainsMono NF") {
-    # Download and install CaskaydiaCove NF
-    $webClient = New-Object System.Net.WebClient
-    $webClient.DownloadFile("https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.2/JetBrainsMono.zip", ".\JetBrainsMono.zip")
-
-    Expand-Archive -Path ".\JetBrainsMono.zip" -DestinationPath ".\JetBrainsMono" -Force
-    $destination = (New-Object -ComObject Shell.Application).Namespace(0x14)
-
-    $fonts = Get-ChildItem -Path ".\JetBrainsMono" -Recurse -Filter "*.ttf"
-    foreach ($font in $fonts) {
-        # Only install standard fonts (16 fonts instead of 90+)
-        if ($font.Name -like "JetBrainsMonoNerdFont-*.ttf") {
-            $destination.CopyHere($font.FullName, 0x10)
-        }
-    }
-
-    Remove-Item -Path ".\JetBrainsMono" -Recurse -Force
-    Remove-Item -Path ".\JetBrainsMono.zip" -Force
-}
+# Persist Environment Variables
+[System.Environment]::SetEnvironmentVariable('WEZTERM_CONFIG_FILE', "$PSScriptRoot\wezterm\wezterm.lua", [System.EnvironmentVariableTarget]::User)
 
 # Create Symbolic Links
 Write-Host "Creating Symbolic Links..."
@@ -120,8 +111,13 @@ foreach ($symlink in $symlinks.GetEnumerator()) {
     New-Item -ItemType SymbolicLink -Path $symlink.Key -Target (Resolve-Path $symlink.Value) -Force | Out-Null
 }
 
-# git config --global --unset user.email | Out-Null
-# git config --global --unset user.name | Out-Null
-# git config --global user.email $currentGitEmail | Out-Null
-# git config --global user.name $currentGitName | Out-Null
+git config --global --unset user.email | Out-Null
+git config --global --unset user.name | Out-Null
+git config --global user.email $currentGitEmail | Out-Null
+git config --global user.name $currentGitName | Out-Null
 
+# Install bat themes
+bat cache --clear
+bat cache --build
+
+.\altsnap\createTask.ps1 | Out-Null

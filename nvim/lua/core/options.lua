@@ -1,7 +1,11 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
+vim.g.autoformat = true
+vim.g.user = os.getenv("USERNAME") or os.getenv("USER")
+vim.g.host = vim.fn.hostname()
 
 local opt = vim.opt
+opt.shell = "zsh"
 
 -- Set shell to PowerShell 7 if on Win32 or Win64
 if vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1 then
@@ -25,12 +29,27 @@ opt.confirm = true
 opt.mouse = "a"
 opt.undofile = true
 opt.swapfile = false
+opt.conceallevel = 1
+opt.scrolloff = 12
+opt.wrap = true
+opt.linebreak = true
+opt.spelllang = "en_nz"
+opt.showtabline = 0
+opt.title = true
+opt.titlestring = string.format("%s@%s - nvim %%t", vim.g.user, vim.g.host)
+
+-- Set statusline
+opt.laststatus = 3
+opt.statusline = require("core.statusline").statusline
 
 -- Set tab width
 opt.tabstop = 4
 opt.shiftwidth = 4
-opt.autoindent = true
 opt.expandtab = true
+opt.autoindent = true
+opt.breakindent = true
+opt.breakindentopt = "shift:2"
+opt.showbreak = "↳"
 
 -- Make cursor blink
 opt.guicursor = {
@@ -38,15 +57,3 @@ opt.guicursor = {
     "a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor",
     "sm:block-blinkwait175-blinkoff150-blinkon175",
 }
-
--- Neovide
-if vim.g.neovide then
-    vim.o.guifont = "JetBrainsMono Nerd Font:h9"
-    vim.g.neovide_fullscreen = true
-    vim.g.neovide_scroll_animation_length = 0.3
-
-    -- Set padding
-    vim.g.neovide_padding_top = 5
-    vim.g.neovide_padding_right = 5
-    vim.g.neovide_padding_left = 5
-end

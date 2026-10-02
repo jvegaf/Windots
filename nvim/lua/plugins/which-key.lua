@@ -1,28 +1,32 @@
+---@diagnostic disable: missing-fields
 return {
     "folke/which-key.nvim",
     event = "VeryLazy",
-    init = function()
-        vim.o.timeout = true
-        vim.o.timeoutlen = 300
-    end,
+    ---@type wk.Opts
     opts = {
-        defaults = {
+        preset = "helix",
+        icons = {
+            rules = false,
+        },
+        spec = {
             mode = { "n", "v" },
-            ["<leader>b"] = { name = "+buffer" },
-            ["<leader>c"] = { name = "+code" },
-            ["<leader>e"] = { name = "+explorer" },
-            ["<leader>f"] = { name = "+file/find" },
-            ["<leader>g"] = { name = "+git" },
-            ["<leader>s"] = { name = "+search" },
-            ["<leader>u"] = { name = "+ui" },
-            ["<leader>w"] = { name = "+windows" },
-            ["<leader>x"] = { name = "+diagnostics/quickfix" },
-            ["<leader><Tab>"] = { name = "+tabs" },
-        }
+            { "<leader><Tab>", group = "tabs" },
+            { "<leader>a", group = "ai/copilot" },
+            { "<leader>b", group = "buffer" },
+            { "<leader>c", group = "code" },
+            { "<leader>cl", group = "lsp" },
+            { "<leader>d", group = "diff" },
+            { "<leader>e", group = "explorer" },
+            { "<leader>f", group = "file/find" },
+            { "<leader>g", group = "git" },
+            { "<leader>o", group = "obsidian" },
+            { "<leader>r", group = "run" },
+            { "<leader>rl", group = "lua" },
+            { "<leader>rs", group = "shell" },
+            { "<leader>s", group = "search" },
+            { "<leader>t", group = "toggle" },
+            { "<leader>w", group = "windows" },
+            { "<leader>x", group = "diagnostics/quickfix" },
+        },
     },
-    config = function(_, opts)
-        local wk = require("which-key")
-        wk.setup(opts)
-        wk.register(opts.defaults)
-    end,
 }

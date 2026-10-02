@@ -144,9 +144,20 @@ ${function:dt} = { Set-Location "$PSScriptRoot\..\..\Desktop" }
 ${function:doc} = { Set-Location "$PSScriptRoot\.." }
 ${function:dl} = { Set-Location ~\Downloads }
 # Aliases
+# ██╗    ██╗██╗███╗   ██╗██████╗  ██████╗ ████████╗███████╗
+# ██║    ██║██║████╗  ██║██╔══██╗██╔═══██╗╚══██╔══╝██╔════╝
+# ██║ █╗ ██║██║██╔██╗ ██║██║  ██║██║   ██║   ██║   ███████╗
+# ██║███╗██║██║██║╚██╗██║██║  ██║██║   ██║   ██║   ╚════██║
+# ╚███╔███╔╝██║██║ ╚████║██████╔╝╚██████╔╝   ██║   ███████║
+#  ╚══╝╚══╝ ╚═╝╚═╝  ╚═══╝╚═════╝  ╚═════╝    ╚═╝   ╚══════╝
+# Profile.ps1 - Scott McKendry
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Set-Alias -Name su -Value Start-AdminSession
-Set-Alias -Name up -Value Update-Profile
+
+
+# Aliases 🔗
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Set-Alias -Name cat -Value bat
+Set-Alias -Name df -Value Get-Volume
 Set-Alias -Name ff -Value Find-File
 Set-Alias -Name grep -Value Find-String
 Set-Alias -Name touch -Value New-File
@@ -156,7 +167,19 @@ Set-Alias -Name tif Show-ThisIsFine
 Set-Alias -Name v -Value nvim
 Set-Alias -Name vi -Value nvim
 Set-Alias -Name cat -Value bat
+Set-Alias -Name l -Value Get-ChildItemPretty
+Set-Alias -Name la -Value Get-ChildItemPretty
+Set-Alias -Name ll -Value Get-ChildItemPretty
+Set-Alias -Name ls -Value Get-ChildItemPretty
+Set-Alias -Name rm -Value Remove-ItemExtended
+Set-Alias -Name su -Value Update-ShellElevation
+Set-Alias -Name tif Show-ThisIsFine
+Set-Alias -Name touch -Value New-File
+Set-Alias -Name up -Value Update-Profile
 Set-Alias -Name us -Value Update-Software
+Set-Alias -Name vi -Value nvim
+Set-Alias -Name vim -Value nvim
+Set-Alias -Name which -Value Show-Command
 
 Set-Alias tig 'C:\Program Files\Git\usr\bin\tig.exe'
 Set-Alias less 'C:\Program Files\Git\usr\bin\less.exe'
@@ -184,7 +207,7 @@ if (Get-Command lsd.exe -ErrorAction SilentlyContinue | Test-Path)
 }
 Add-ProfileLogEntry "Aliases loaded"
 
-# Putting the FUN in Functions
+# Putting the FUN in Functions 🎉
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 function Find-WindotsRepository {
     <#
@@ -201,52 +224,29 @@ function Find-WindotsRepository {
     $profileSymbolicLink = Get-ChildItem $ProfilePath | Where-Object FullName -EQ $PROFILE.CurrentUserAllHosts
     return Split-Path $profileSymbolicLink.Target
 }
-function Get-LatestProfile {
-    <#
-    .SYNOPSIS
-        Checks the Github repository for the latest commit date and compares to the local version.
-        If the profile is out of date, instructions are displayed on how to update it.
-    #>
-
-    Write-Verbose "Checking for updates to the profile"
-    $currentWorkingDirectory = $PWD
-    Set-Location $ENV:WindotsLocalRepo
-    $gitStatus = git status
-
-    if ($gitStatus -like "*Your branch is up to date with*") {
-        Write-Verbose "Profile is up to date"
-        Set-Location $currentWorkingDirectory
-        return
-    }
-    else {
-        Write-Verbose "Profile is out of date"
-        Write-Host "Your PowerShell profile is out of date with the latest commit. To update it, run Update-Profile." -ForegroundColor Yellow
-        Set-Location $currentWorkingDirectory
-    }
-}
-function Start-AdminSession {
-    <#
-    .SYNOPSIS
-        Starts a new PowerShell session with elevated rights. Alias: su
-    #>
-    Start-Process wt -Verb runAs -ArgumentList "pwsh.exe -NoExit -Command &{Set-Location $PWD}"
-}
 
 function Update-Profile {
     <#
     .SYNOPSIS
-        Downloads the latest version of the PowerShell profile from Github, updates the PowerShell profile with the latest version and reruns the setup script.
-        Note that functions won't be updated, this requires a full restart. Alias: up
+        Gets the latest changes from git, reruns the setup script and reloads the profile.
+        Note that functions won't be updated, this requires a full PS session restart. Alias: up
     #>
     Write-Verbose "Storing current working directory in memory"
     $currentWorkingDirectory = $PWD
 
     Write-Verbose "Updating local profile from Github repository"
     Set-Location $ENV:WindotsLocalRepo
+    git stash | Out-Null
     git pull | Out-Null
+    git stash pop | Out-Null
 
     Write-Verbose "Rerunning setup script to capture any new dependencies."
-    Start-Process pwsh -Verb runAs -WorkingDirectory $PWD -ArgumentList "-Command .\Setup.ps1"
+    if (Get-Command -Name sudo -ErrorAction SilentlyContinue) {
+        sudo pwsh ./Setup.ps1
+    }
+    else {
+        Start-Process wezterm -Verb runAs -WindowStyle Hidden -ArgumentList "start --cwd $PWD pwsh -NonInteractive -Command ./Setup.ps1"
+    }
 
     Write-Verbose "Reverting to previous working directory"
     Set-Location $currentWorkingDirectory
@@ -261,8 +261,9 @@ function Update-Software {
         Updates all software installed via Winget & Chocolatey. Alias: us
     #>
     Write-Verbose "Updating software installed via Winget & Chocolatey"
-    Start-Process wt -Verb runAs -ArgumentList "pwsh.exe -Command &{winget upgrade --all && choco upgrade all -y}"
-    $ENV:UpdatesPending = ''
+    sudo winget upgrade --all --include-unknown --silent --verbose
+    sudo choco upgrade all -y
+    $ENV:SOFTWARE_UPDATE_AVAILABLE = ""
 }
 
 function Find-File {
@@ -281,6 +282,15 @@ function Find-File {
 
     Write-Verbose "Outputting results to table"
     $result | Format-Table -AutoSize
+}
+
+function Update-ShellElevation {
+    <#
+    .SYNOPSIS
+        Elevates the current shell to run as an administrator. Alias: su
+    #>
+    Write-Verbose "Elevating shell to run as administrator"
+    sudo -E pwsh -NoLogo -Interactive -NoExit -c "Clear-Host"
 }
 
 function Find-String {
@@ -422,21 +432,51 @@ function Show-ThisIsFine {
         Displays the "This is fine" meme in the console. Alias: tif
     #>
     Write-Verbose "Running thisisfine.ps1"
-    Invoke-Expression (Get-Content "$env:WindotsLocalRepo\art\thisisfine.ps1" -Raw)
+    Show-ColorScript -Name thisisfine
 }
 
-Add-ProfileLogEntry -Message "Functions loaded"
+function Remove-ItemExtended {
+    <#
+    .SYNOPSIS
+        Removes an item and (optionally) all its children. Alias: rm
+    #>
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $false)]
+        [switch]$rf,
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string]$Path
+    )
 
-# Environment Variables
+    Write-Verbose "Removing item '$Path' $($rf ? 'and all its children' : '')"
+    Remove-Item $Path -Recurse:$rf -Force:$rf
+}
+
+
+# Environment Variables 🌐
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 $ENV:WindotsLocalRepo = Find-WindotsRepository -ProfilePath $PSScriptRoot
 $ENV:STARSHIP_CONFIG = "$ENV:WindotsLocalRepo\starship\starship.toml"
 $ENV:_ZO_DATA_DIR = $ENV:WindotsLocalRepo
+$ENV:OBSIDIAN_PATH = "$HOME\git\obsidian-vault"
+$ENV:BAT_CONFIG_DIR = "$ENV:WindotsLocalRepo\bat"
+$ENV:FZF_DEFAULT_OPTS = '--color=fg:-1,fg+:#ffffff,bg:-1,bg+:#3c4048 --color=hl:#5ea1ff,hl+:#5ef1ff,info:#ffbd5e,marker:#5eff6c --color=prompt:#ff5ef1,spinner:#bd5eff,pointer:#ff5ea0,header:#5eff6c --color=gutter:-1,border:#3c4048,scrollbar:#7b8496,label:#7b8496 --color=query:#ffffff --border="rounded" --border-label="" --preview-window="border-rounded" --height 40% --preview="bat -n --color=always {}"'
 
-# Check for Git updates while prompt is loading
-Start-Job -ScriptBlock { Set-Location $ENV:WindotsLocalRepo && git fetch --all } | Out-Null
 
-Add-ProfileLogEntry -Message "Git fetch job started"
+# Prompt & Shell Configuration 🐚
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+# Start background jobs for dotfiles and software update checks
+Start-ThreadJob -ScriptBlock {
+    Set-Location -Path $ENV:WindotsLocalRepo
+    $gitUpdates = git fetch && git status
+    if ($gitUpdates -match "behind") {
+        $ENV:DOTFILES_UPDATE_AVAILABLE = "󱤛 "
+    }
+    else {
+        $ENV:DOTFILES_UPDATE_AVAILABLE = ""
+    }
+} | Out-Null
 
 Start-ThreadJob -ScriptBlock {
     <#
@@ -446,27 +486,41 @@ Start-ThreadJob -ScriptBlock {
         via two isolated jobs. This sets the environment variable correctly and doesn't cause any lag (that I've noticed yet).
     #>
     $wingetUpdatesString = Start-Job -ScriptBlock { winget list --upgrade-available | Out-String } | Wait-Job | Receive-Job
-    $chocoUpdatesString = Start-Job -ScriptBlock { choco upgrade all --noop | Out-String } | Wait-Job | Receive-Job
+    $chocoUpdatesString = Start-Job -ScriptBlock { choco upgrade all --noop -y | Out-String } | Wait-Job | Receive-Job
     if ($wingetUpdatesString -match "upgrades available" -or $chocoUpdatesString -notmatch "can upgrade 0/") {
-        $ENV:UpdatesPending = "`u{eb29}  "
+        $ENV:SOFTWARE_UPDATE_AVAILABLE = " "
     }
     else {
-        $ENV:UpdatesPending = ""
+        $ENV:SOFTWARE_UPDATE_AVAILABLE = ""
     }
 } | Out-Null
 
-Add-ProfileLogEntry -Message "Update check job started"
+function Invoke-Starship-TransientFunction {
+    &starship module character
+}
 
-# Prompt Setup
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Invoke-Expression (&starship init powershell)
+Enable-TransientPrompt
 Invoke-Expression (& { ( zoxide init powershell --cmd cd | Out-String ) })
 
-Add-ProfileLogEntry -Message "Prompt setup complete"
+$colors = @{
+    "Operator"         = "`e[35m" # Purple
+    "Parameter"        = "`e[36m" # Cyan
+    "String"           = "`e[32m" # Green
+    "Command"          = "`e[34m" # Blue
+    "Variable"         = "`e[37m" # White
+    "Comment"          = "`e[38;5;244m" # Gray
+    "InlinePrediction" = "`e[38;5;244m" # Gray
+}
 
-# Check for updates
-Get-LatestProfile
+Set-PSReadLineOption -Colors $colors
+Set-PSReadLineOption -PredictionSource HistoryAndPlugin
+Set-PSReadLineOption -PredictionViewStyle InlineView
+Set-PSReadLineKeyHandler -Function AcceptSuggestion -Key Alt+l
+Import-Module -Name CompletionPredictor
 
-$enableLog ? $stopwatch.Stop() : $null
-Add-ProfileLogEntry -Message "Profile load complete"
-
+# Skip fastfetch for non-interactive shells
+if ([Environment]::GetCommandLineArgs().Contains("-NonInteractive")) {
+    return
+}
+fastfetch

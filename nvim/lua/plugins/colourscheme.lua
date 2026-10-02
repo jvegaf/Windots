@@ -1,72 +1,22 @@
--- Set transparency
-local is_transparent = true -- Set to false to disable transparency in 🪟
-if vim.fn.has("unix") == 1 then
-    is_transparent = true
-end
-
-if is_transparent then
-    vim.opt.fillchars:append({
-        horiz = " ",
-        horizup = " ",
-        horizdown = " ",
-        vert = " ",
-        vertleft = " ",
-        vertright = " ",
-        verthoriz = " ",
-        eob = " ",
-    })
-end
-
 return {
-    {
-        "EdenEast/nightfox.nvim",
-        lazy = false,
-        priority = 1000,
-        config = function()
-            if is_transparent then
-                require("nightfox").setup({
-                    options = {
-                        transparent = true,
-                    },
-                    groups = {
-                        all = {
-                            NormalFloat = { fg = "fg1", bg = "NONE" },
-                            WhichKeyFloat = { fg = "fg1", bg = "NONE" },
-                        },
-                    },
-                })
-            end
-            vim.cmd("colorscheme nordfox")
-        end,
-    },
-    {
-        "folke/tokyonight.nvim",
-        priority = 1000,
-        lazy = false,
-        config = function()
-            if is_transparent then
-                require("tokyonight").setup({
-                    transparent = true,
-                    styles = {
-                        sidebars = "transparent",
-                        floats = "transparent",
-                    },
-                })
-            end
-            -- vim.cmd("colorscheme tokyonight")
-        end,
-    },
-    {
-        "catppuccin/nvim",
-        name = "catppuccin",
-        lazy = false,
-        priority = 1000,
-        config = function()
-            require("catppuccin").setup({
-                flavor = "mocha",
-                transparent_background = is_transparent,
-            })
-            -- vim.cmd("colorscheme catppuccin")
+    "scottmckendry/cyberdream.nvim",
+    dev = true,
+    lazy = false,
+    priority = 1000,
+    ---@type cyberdream.Config
+    opts = {
+        variant = "muted",
+        transparent = true,
+        italic_comments = true,
+        hide_fillchars = true,
+        terminal_colors = false,
+        cache = true,
+        borderless_pickers = true,
+        overrides = function(c)
+            return {
+                CursorLine = { bg = c.bg },
+                CursorLineNr = { fg = c.magenta },
+            }
         end,
     },
 }
